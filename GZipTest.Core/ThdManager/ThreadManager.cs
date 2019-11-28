@@ -7,7 +7,7 @@ namespace GZipTest.Core.ThdManager
 {
     public class ThreadManager : IThreadManager
     {
-        private readonly IEngine _engine;
+        private readonly IGzipEngine _gzipEngine;
 
         private readonly IResourceCalculation _resourceCalculation;
 
@@ -37,11 +37,11 @@ namespace GZipTest.Core.ThdManager
         private object _obj = new object();
 
         public ThreadManager(
-            IEngine engine,
+            IGzipEngine gzipEngine,
             IResourceCalculation resourceCalculation
             )
         {
-            _engine = engine ?? throw new ArgumentNullException(nameof(engine));
+            _gzipEngine = gzipEngine ?? throw new ArgumentNullException(nameof(gzipEngine));
             _resourceCalculation = resourceCalculation ?? throw new ArgumentNullException(nameof(resourceCalculation));
            
             _semaphoreCount = Environment.ProcessorCount; //при необходимости можно дать возможность через конструктор передавать
@@ -87,7 +87,7 @@ namespace GZipTest.Core.ThdManager
                     {
                         try
                         {
-                            _engine.Execute();
+                            _gzipEngine.Execute();
                         }
                         finally
                         {

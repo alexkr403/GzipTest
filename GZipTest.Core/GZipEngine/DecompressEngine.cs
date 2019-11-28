@@ -6,7 +6,7 @@ using GZipTest.Core.InputArgsContainer;
 
 namespace GZipTest.Core.GZipEngine
 {
-    public class DecompressEngine : IEngine
+    public class DecompressEngine : IGzipEngine
     {
         private readonly IInputArgsDecompress _inputArgs;
 

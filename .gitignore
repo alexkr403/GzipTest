@@ -203,3 +203,17 @@
 /GzipTest.Tests/obj/GzipTest.Tests.csproj.nuget.g.targets
 /GzipTest.Tests/obj/project.assets.json
 /.vs/GZipTest/v16/.suo
+/.vs/GZipTest/DesignTimeBuild/.dtbcache
+/.vs/GZipTest/v16/TestStore/0/000-0000.testlog
+/.vs/GZipTest/v16/TestStore/0/testlog.manifest
+/GZipTest.Core/GZipEngine/IGzipEngine.cs
+/GZipTest.Core/obj/Debug/netstandard2.0/GZipTest.Core.csprojAssemblyReference.cache
+/GZipTest.Start/bin/Debug/netcoreapp3.0/Bridge.bmp
+/GZipTest.Start/bin/Debug/netcoreapp3.0/bridge.bmp.prt1
+/GZipTest.Start/bin/Debug/netcoreapp3.0/bridge.bmp.prt2
+/GZipTest.Start/bin/Debug/netcoreapp3.0/bridge.bmp.prt3
+/GZipTest.Start/bin/Debug/netcoreapp3.0/bridge.bmp.prt4
+/GZipTest.Start/bin/Debug/netcoreapp3.0/bridge.bmp.prt5
+/GZipTest.Start/bin/Debug/netcoreapp3.0/bridge.bmp.prt6
+/GZipTest.Start/bin/Debug/netcoreapp3.0/bridge.bmp.prt7
+/GZipTest.Start/bin/Debug/netcoreapp3.0/bridgeDecompressed.bmp
