@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using GZipTest.Core.ThdManager;
 using GZipTest.Start.Common;
 using GZipTest.Start.CompositeRoot;
@@ -13,7 +12,7 @@ namespace GZipTest.Start
 
     class Program
     {
-        private const string Postfix = ".prt";
+        private const string Postfix = ".gzip";
 
         private static Workstation _root;
 
@@ -23,11 +22,13 @@ namespace GZipTest.Start
             {
                 if (args.Length != 3)
                 {
-                    throw new ArgumentException(
+                    Console.WriteLine(
                         "Ожидаемое количество параметров комндной стрки: 3. " +
                         "Имена исходного и результирующего файлов должны задаваться в командной строке следующим образом: " +
                         "compress/decompress [имя исходного файла] [имя результирующего файла]"
                         );
+
+                    return;
                 }
 
                 var gzipEngine = args[0];
@@ -35,23 +36,23 @@ namespace GZipTest.Start
                 var outputFileName = args[2].TrimStart('[').TrimEnd(']');
 
                 var gzipEngineType = ValidationInputArgsHelper.GetGzipEngineType(gzipEngine);
+
+                if (gzipEngineType == GzipEngineEnum.NotDefined)
+                {
+                    return;
+                }
+
+                if (ValidationInputArgsHelper.ValidateFile(inputFileName))
+                {
+                    return;
+                }
+
                 if (gzipEngineType == GzipEngineEnum.Compress)
                 {
-                    ValidationInputArgsHelper.ValidateToCompress(inputFileName);
-
                     outputFileName = outputFileName + Postfix;
                 }
-                else if (gzipEngineType == GzipEngineEnum.Decompress)
-                {
-                    ValidationInputArgsHelper.ValidateToDecompress(
-                        inputFileName,
-                        outputFileName,
-                        Postfix
-                        );
 
-                    var indexPostfix = inputFileName.IndexOf(Postfix, StringComparison.OrdinalIgnoreCase) + Postfix.Length;
-                    inputFileName = inputFileName.Remove(indexPostfix);
-                }
+                ValidationInputArgsHelper.DeleteOutputFile(outputFileName);
 
                 using (_root = new Workstation())
                 {
@@ -60,9 +61,7 @@ namespace GZipTest.Start
                         outputFileName
                         );
 
-                    var engineModule = new EngineModule(gzipEngineType);
-
-                    _root.Load(engineModule);
+                    _root.Load(new EngineModule(gzipEngineType));
 
                     var engine = _root.Get<IThreadManager>();
                     engine.Start();
@@ -70,19 +69,10 @@ namespace GZipTest.Start
 
                 Environment.Exit(0);
             }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine($"Параметры командной строки заданы некорректно. {ex.Message}");
-                Environment.Exit(1);
-            }
-            catch (FileNotFoundException ex)
-            {
-                Console.WriteLine($"Не найден файл: {ex.Message}");
-                Environment.Exit(1);
-            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Неизвестная ошибка при обработке файла: {ex.Message}");
+                Console.WriteLine($"Ошибка при обработке файла. {ex.Message}");
+
                 Environment.Exit(1);
             }
         }

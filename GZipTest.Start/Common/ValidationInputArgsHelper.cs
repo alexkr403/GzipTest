@@ -10,59 +10,44 @@ namespace GZipTest.Start.Common
 
         public static GzipEngineEnum GetGzipEngineType(string gzipEngine)
         {
-            GzipEngineEnum gzipEngineType;
             if (gzipEngine == Compress)
             {
-                gzipEngineType = GzipEngineEnum.Compress;
+                return 
+                    GzipEngineEnum.Compress;
             }
-            else if (gzipEngine == Decompress)
+
+            if (gzipEngine == Decompress)
             {
-                gzipEngineType = GzipEngineEnum.Decompress;
+                return 
+                    GzipEngineEnum.Decompress;
             }
-            else
+
+            Console.WriteLine("Требуется ввести параметр compress/decompress");
+
+            return 
+                GzipEngineEnum.NotDefined;
+        }
+
+        public static bool ValidateFile(string inputFile)
+        {
+            if (!File.Exists(inputFile))
             {
-                throw new ArgumentException("Требуется ввести параметр compress/decompress");
+                Console.WriteLine($"Файл <{inputFile}> не найден");
+
+                return
+                    false;
             }
 
             return
-                gzipEngineType;
+                true;
         }
 
-        public static void ValidateToCompress(string inputFile)
+        public static void DeleteOutputFile(string outputFile)
         {
-            if (!File.Exists(inputFile))
+            if (File.Exists(outputFile))
             {
-                throw new FileNotFoundException(inputFile);
+                File.Delete(outputFile);
             }
-        }
-
-        public static void ValidateToDecompress(
-            string inputFile,
-            string outputFile,
-            string postfix
-            )
-        {
-            if (postfix == null)
-            {
-                throw new ArgumentNullException(nameof(postfix));
-            }
-
-            if (string.Equals(inputFile, outputFile, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new ArgumentException($"Имя входного фыйла {inputFile} совпадает с именем выходного файла {outputFile}");
-            }
-
-            if (!inputFile.Contains(postfix))
-            {
-                throw new ArgumentException("Необходимо указать имя сжатого файла (файл c постфиксом *.prt)");
-            }
-
-            if (!File.Exists(inputFile))
-            {
-                throw new FileNotFoundException(inputFile);
-            }
-
-            File.Delete(outputFile);
         }
     }
 }

@@ -217,3 +217,9 @@
 /GZipTest.Start/bin/Debug/netcoreapp3.0/bridge.bmp.prt6
 /GZipTest.Start/bin/Debug/netcoreapp3.0/bridge.bmp.prt7
 /GZipTest.Start/bin/Debug/netcoreapp3.0/bridgeDecompressed.bmp
+/GZipTest.Start/obj
+/GZipTest.Start/bin
+/GZipTest.Core/bin
+/GZipTest.Core/obj
+/GzipTest.Tests/obj
+/GzipTest.Tests/bin
