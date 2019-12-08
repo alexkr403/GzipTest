@@ -2,9 +2,10 @@
 
 namespace GZipTest.Core.InputArgsContainer
 {
-    public class InputArgs :
-        IInputArgsCompress,
-        IInputArgsDecompress
+    /// <summary>
+    /// Аогументы, которые относятся к процедуре по распаковке файла
+    /// </summary>
+    public class InputArgs
     {
         public InputArgs(
             string inputFileName,
@@ -24,11 +25,5 @@ namespace GZipTest.Core.InputArgsContainer
         {
             get;
         }
-
-        // задаем здесь жестко т.к. в ТЗ не написано, что данный параметр должен быть динамическим
-        /// <summary>
-        /// Размер сжатых (результирующих) файлов,
-        /// </summary>
-        public int OutputFileSize => 999999; //8096; //1048576;
     }
 }

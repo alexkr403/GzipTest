@@ -25,7 +25,7 @@ namespace GzipTest.Tests
             var outputFileSize = 1048576;
 
             var inputArgsCompressPropertiesMock = new Mock<IInputArgsCompress>();
-            var inputArgsDecompressPropertiesMock = new Mock<IInputArgsDecompress>();
+            var inputArgsDecompressPropertiesMock = new Mock<IInputArgs>();
             var resourceCalculationMock = new Mock<IResourceCalculation>();
 
             try

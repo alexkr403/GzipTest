@@ -22,26 +22,6 @@ namespace GZipTest.Start.CompositeRoot.Modules
                     .To<CompressEngine>()
                     //Not Singleton
                     ;
-
-                //привязку IResourceCalculation можно вынести из под условия и определять так как показано ниже, но тогда CompressEngine
-                //будет отвечать также за возврат количества ресурсов требуемых к обработке, что на мой взягляд не принесет большого профита
-                // а также несколько нарушит Single Responsibility Principle
-                /*Bind<IResourceCalculation>()
-                    .To<ResourceCalculationCompress>()
-                    .WhenInjectedInto<CompressEngine>() <---
-                    .InSingletonScope()
-
-                Bind<IResourceCalculation>()
-                    .To<ResourceCalculationCompress>()
-                    .WhenInjectedInto<DecompressEngine>() <---
-                    .InSingletonScope()
-                    ;*/
-                //поэтому оставлю та как есть
-
-                Bind<IResourceCalculation>()
-                    .To<ResourceCalculationCompress>()
-                    .InSingletonScope()
-                    ;
             }
             else if (_gzipEngineType == GzipEngineEnum.Decompress)
             {
@@ -49,12 +29,12 @@ namespace GZipTest.Start.CompositeRoot.Modules
                     .To<DecompressEngine>()
                     //Not Singleton
                     ;
-
-                Bind<IResourceCalculation>()
-                    .To<ResourceCalculationDecompress>()
-                    .InSingletonScope()
-                    ;
             }
+
+            Bind<IBlockInfoCalculation>()
+                .To<BlockInfoCalculation>()
+                .InSingletonScope()
+                ;
         }
     }
 }

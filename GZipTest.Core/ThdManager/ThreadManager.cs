@@ -9,8 +9,6 @@ namespace GZipTest.Core.ThdManager
     {
         private readonly IGzipEngine _gzipEngine;
 
-        private readonly IResourceCalculation _resourceCalculation;
-
         /// <summary>
         /// Количество ресурсов, обработку которых можно распараллелить
         /// </summary>
@@ -36,20 +34,16 @@ namespace GZipTest.Core.ThdManager
         /// </summary>
         private object _obj = new object();
 
-        public ThreadManager(
-            IGzipEngine gzipEngine,
-            IResourceCalculation resourceCalculation
-            )
+        public ThreadManager(IGzipEngine gzipEngine)
         {
             _gzipEngine = gzipEngine ?? throw new ArgumentNullException(nameof(gzipEngine));
-            _resourceCalculation = resourceCalculation ?? throw new ArgumentNullException(nameof(resourceCalculation));
            
             _semaphoreCount = Environment.ProcessorCount; //при необходимости можно дать возможность через конструктор передавать
         }
 
         public void Start()
         {
-            _resourceCount = _resourceCalculation.GetCount();
+            _resourceCount = _gzipEngine.GetResourceCount();
             _stake = 100d / _resourceCount;
 
             var semaphore = new SemaphoreSlim(_semaphoreCount);

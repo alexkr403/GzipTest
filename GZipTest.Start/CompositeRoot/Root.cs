@@ -16,8 +16,8 @@ namespace GZipTest.Start.CompositeRoot
                 //Not Singleton
                 ;
 
-            Bind<IInputArgsCompress, IInputArgsDecompress>()
-                .To<InputArgs>()
+            Bind<InputArgs>()
+                .ToSelf()
                 .InSingletonScope()
                 .WithConstructorArgument("inputFileName", inputFileName)
                 .WithConstructorArgument("outputFileName", outputFileName)
