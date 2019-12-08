@@ -29,6 +29,6 @@ namespace GZipTest.Core.InputArgsContainer
         /// <summary>
         /// Размер сжатых (результирующих) файлов,
         /// </summary>
-        public int OutputFileSize => 1048576;
+        public int OutputFileSize => 999999; //8096; //1048576;
     }
 }

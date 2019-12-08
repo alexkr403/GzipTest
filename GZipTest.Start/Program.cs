@@ -8,7 +8,7 @@ using Ninject;
 namespace GZipTest.Start
 {
     //compress [bridge.bmp] [bridge.bmp]
-    //decompress [bridge.bmp.prt1] [bridgeDecompressed.bmp]
+    //decompress [bridge.bmp.gzip] [bridgeDecompressed.bmp]
 
     class Program
     {
@@ -42,7 +42,7 @@ namespace GZipTest.Start
                     return;
                 }
 
-                if (ValidationInputArgsHelper.ValidateFile(inputFileName))
+                if (!ValidationInputArgsHelper.ValidateFile(inputFileName))
                 {
                     return;
                 }
