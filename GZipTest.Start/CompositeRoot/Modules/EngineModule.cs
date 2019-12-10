@@ -29,8 +29,8 @@ namespace GZipTest.Start.CompositeRoot.Modules
                     ;
             }
 
-            Bind<IBlockInfoCalculation>()
-                .To<BlockInfoCalculation>()
+            Bind<IBlockInfo>()
+                .To<BlockInfo>()
                 .InSingletonScope()
                 ;
         }

@@ -42,7 +42,7 @@ namespace GzipTest.Tests
                 decompressInputArgsMock.Setup(z => z.InputFileName).Returns(compressOutputFile);
                 decompressInputArgsMock.Setup(z => z.OutputFileName).Returns(decompressFile);
 
-                var blockInfoCalculation = new BlockInfoCalculation();
+                var blockInfoCalculation = new BlockInfo();
                 var decompressEngine = new DecompressEngine(
                     decompressInputArgsMock.Object,
                     blockInfoCalculation
