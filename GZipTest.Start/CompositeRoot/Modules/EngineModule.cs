@@ -20,14 +20,12 @@ namespace GZipTest.Start.CompositeRoot.Modules
             {
                 Bind<IGzipEngine>()
                     .To<CompressEngine>()
-                    //Not Singleton
                     ;
             }
             else if (_gzipEngineType == GzipEngineEnum.Decompress)
             {
                 Bind<IGzipEngine>()
                     .To<DecompressEngine>()
-                    //Not Singleton
                     ;
             }
 

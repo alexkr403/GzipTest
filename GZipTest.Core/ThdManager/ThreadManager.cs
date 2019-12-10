@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using GZipTest.Core.GZipEngine;
-using GZipTest.Core.ResourceCalculation;
 
 namespace GZipTest.Core.ThdManager
 {
@@ -15,12 +14,12 @@ namespace GZipTest.Core.ThdManager
         private readonly int _semaphoreCount;
 
         /// <summary>
-        /// Количество ресурсов требующих обработки
+        /// Общее количество ресурсов требующих обработки
         /// </summary>
         private long _resourceCount;
 
         /// <summary>
-        /// Доля одного части сжимаемого файла, от размера целого сжимаемого файла
+        /// Доля одной части сжимаемого файла, от размера всего сжимаемого файла
         /// </summary>
         private double _stake;
 
@@ -43,7 +42,13 @@ namespace GZipTest.Core.ThdManager
 
         public void Start()
         {
+            Console.Write("Подготовка к обработке файла");
+
             _resourceCount = _gzipEngine.GetResourceCount();
+
+            Console.Write("\rПодготовка к обработке файла завершена");
+            Console.WriteLine();
+
             _stake = 100d / _resourceCount;
 
             var semaphore = new SemaphoreSlim(_semaphoreCount);
@@ -110,6 +115,7 @@ namespace GZipTest.Core.ThdManager
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+
                 Environment.Exit(1);
             }
         }

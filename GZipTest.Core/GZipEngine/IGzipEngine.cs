@@ -13,6 +13,6 @@
         /// <summary>
         /// Количество ресурсов параллельную обработку которых необходимо организовать
         /// </summary>
-        long GetResourceCount();
+        int GetResourceCount();
     }
 }

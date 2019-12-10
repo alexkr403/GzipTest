@@ -2,7 +2,7 @@
   "profiles": {
     "GZipTest.Start": {
       "commandName": "Project",
-      "commandLineArgs": "decompress [bridge.bmp.gzip] [bridgeDecompressed.bmp]"
+      "commandLineArgs": "decompress [bridge.bmp.zip] [bridgeDecompressed.bmp]"
     }
   }
 }

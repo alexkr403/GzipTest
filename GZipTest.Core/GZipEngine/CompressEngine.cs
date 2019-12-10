@@ -6,41 +6,44 @@ using GZipTest.Core.InputArgsContainer;
 
 namespace GZipTest.Core.GZipEngine
 {
+    /// <summary>
+    /// Для организации сжатия файла
+    /// </summary>
     public class CompressEngine : IGzipEngine
     {
         /// <summary>
         /// блок 1 мб.
         /// </summary>
-        private const int OutputFileSize = 1048576;
+        private const int BlockSize = 1048576;
 
-        private readonly InputArgs _inputArgs;
+        private readonly IInputArgs _inputArgs;
 
         /// <summary>
-        /// Для организации последовательной (корректной) записи массива байт каждого из сжатых блоков
+        /// Для организации последовательной (корректной) записи массива байт каждого из блоков в gzip файл
         /// </summary>
         private int _indexSync = 1;
 
         /// <summary>
-        /// Количество итерраций чтения байт в сжимаемом файле
+        /// Количество итерраций чтения исходного (сжимаемого) файла
         /// </summary>
         private int _index;
 
         /// <summary>
-        /// Количество прочитанных байт в сжимаемом файле
+        /// Длина прочитанных байт исходного (сжимаемого) файла
         /// </summary>
-        private long _complitedBytesCount;
+        private long _totalLenght;
 
         /// <summary>
         /// Для синхронизации чтения исходного (сжимаемого) файла
         /// </summary>
         private object _obj = new object();
 
-        public CompressEngine(InputArgs inputArgs)
+        public CompressEngine(IInputArgs inputArgs)
         {
             _inputArgs = inputArgs ?? throw new ArgumentNullException(nameof(inputArgs));
         }
 
-        private OutputFileData GetOutputFile()
+        private OutputBlock GetOutputBlock()
         {
             lock (_obj)
             {
@@ -50,33 +53,33 @@ namespace GZipTest.Core.GZipEngine
                     FileAccess.Read
                     ))
                 {
-                    _complitedBytesCount = OutputFileSize * _index;
+                    _totalLenght = BlockSize * (long)_index;
 
                     inputFileStream.Seek(
-                        _complitedBytesCount,
+                        _totalLenght,
                         SeekOrigin.Begin
                         );
 
-                    var countBytesToRead = inputFileStream.Length - _complitedBytesCount;
+                    var countBytesToRead = inputFileStream.Length - _totalLenght;
 
-                    var outputFileSize = countBytesToRead > OutputFileSize
-                        ? OutputFileSize
+                    var outputBlockSize = countBytesToRead > BlockSize
+                        ? BlockSize
                         : (int)countBytesToRead;
 
-                    var outputFileBytes = new byte[outputFileSize];
+                    var outputBlockBytes = new byte[outputBlockSize];
 
                     inputFileStream.Read(
-                        outputFileBytes,
+                        outputBlockBytes,
                         0,
-                        outputFileSize
+                        outputBlockSize
                         );
 
                     _index++;
 
                     return
-                        new OutputFileData(
+                        new OutputBlock(
                             _index,
-                            outputFileBytes
+                            outputBlockBytes
                             );
                 }
             }
@@ -86,23 +89,23 @@ namespace GZipTest.Core.GZipEngine
         {
             try
             {
-                var outputFile = GetOutputFile();
+                var outputBlock = GetOutputBlock();
 
-                using (var outputFileMemoryStream = new MemoryStream())
+                using (var outputBlockMemoryStream = new MemoryStream())
                 {
                     using (var compressionStream = new GZipStream(
-                        outputFileMemoryStream,
+                        outputBlockMemoryStream,
                         CompressionMode.Compress,
                         true
                         ))
                     {
-                        using (var tempMemoryStream = new MemoryStream(outputFile.Data))
+                        using (var tempMemoryStream = new MemoryStream(outputBlock.Data))
                         {
                             tempMemoryStream.CopyTo(compressionStream);
                         }
                     }
 
-                    while (_indexSync != outputFile.Index)
+                    while (_indexSync != outputBlock.Index)
                     {
                         //организуем корректную дозапись сжатых частей в выходной файл
                         Thread.Sleep(1);
@@ -115,12 +118,12 @@ namespace GZipTest.Core.GZipEngine
                         FileShare.Read
                         ))
                     {
-                        outputFileMemoryStream.Seek(0, SeekOrigin.Begin);
+                        outputBlockMemoryStream.Seek(0, SeekOrigin.Begin);
 
-                        var linkedListBytes = BitConverter.GetBytes(outputFileMemoryStream.Length);
+                        var linkedListBytes = BitConverter.GetBytes(outputBlockMemoryStream.Length);
                         outputFileStream.Write(linkedListBytes, 0, linkedListBytes.Length);
 
-                        outputFileMemoryStream.CopyTo(outputFileStream);
+                        outputBlockMemoryStream.CopyTo(outputFileStream);
                     }
 
                     _indexSync++;
@@ -132,23 +135,23 @@ namespace GZipTest.Core.GZipEngine
             }
         }
 
-        public long GetResourceCount()
+        public int GetResourceCount()
         {
             var fileLength = new FileInfo(_inputArgs.InputFileName).Length;
 
-            var resourceCount = fileLength / OutputFileSize;
+            var resourceCount = fileLength / BlockSize;
             resourceCount +=
-                OutputFileSize == fileLength
+                BlockSize == fileLength
                     ? 0
                     : 1;
 
             return
-                resourceCount;
+                (int)resourceCount;
         }
 
-        private class OutputFileData
+        private class OutputBlock
         {
-            public OutputFileData(
+            public OutputBlock(
                 int index, 
                 byte[] data
                 )

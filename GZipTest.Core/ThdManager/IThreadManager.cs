@@ -6,7 +6,7 @@
     public interface IThreadManager
     {
         /// <summary>
-        /// Запуск обработчика потоков
+        /// Запуск менеджера потоков
         /// </summary>
         void Start();
     }

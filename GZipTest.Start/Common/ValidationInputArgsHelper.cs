@@ -22,17 +22,25 @@ namespace GZipTest.Start.Common
                     GzipEngineEnum.Decompress;
             }
 
-            Console.WriteLine("Требуется ввести параметр compress/decompress");
+            Console.WriteLine($"Требуется ввести параметр {Compress}/{Decompress}");
 
             return 
                 GzipEngineEnum.NotDefined;
         }
 
-        public static bool ValidateFile(string inputFile)
+        public static bool ValidateFiles(string inputFile, string outputFile)
         {
             if (!File.Exists(inputFile))
             {
                 Console.WriteLine($"Файл <{inputFile}> не найден");
+
+                return
+                    false;
+            }
+
+            if (string.Equals(inputFile, outputFile))
+            {
+                Console.WriteLine($"Имя исходного файла <{inputFile}> не должно совпадать с именем результирующего <{outputFile}>");
 
                 return
                     false;

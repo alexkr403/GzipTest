@@ -7,13 +7,11 @@ using Ninject;
 
 namespace GZipTest.Start
 {
-    //compress [bridge.bmp] [bridge.bmp]
-    //decompress [bridge.bmp.gzip] [bridgeDecompressed.bmp]
+    //compress [bridge.bmp] [bridge.bmp.zip]
+    //decompress [bridge.bmp.zip] [bridgeDecompressed.bmp]
 
     class Program
     {
-        private const string Postfix = ".gzip";
-
         private static Workstation _root;
 
         static void Main(string[] args)
@@ -42,14 +40,9 @@ namespace GZipTest.Start
                     return;
                 }
 
-                if (!ValidationInputArgsHelper.ValidateFile(inputFileName))
+                if (!ValidationInputArgsHelper.ValidateFiles(inputFileName, outputFileName))
                 {
                     return;
-                }
-
-                if (gzipEngineType == GzipEngineEnum.Compress)
-                {
-                    outputFileName = outputFileName + Postfix;
                 }
 
                 ValidationInputArgsHelper.DeleteOutputFile(outputFileName);

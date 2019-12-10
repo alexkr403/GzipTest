@@ -18,49 +18,41 @@ namespace GzipTest.Tests
         [TestMethod]
         public void TestMethod()
         {
-            var toCompressFile = "Bridge.bmp";
-            var toDecompressFile = "DecompressedBridge.bmp";
+            var compressInputFile = "Bridge.bmp";
+            var compressOutputFile = "Bridge.bmp.gzip";
+            var decompressFile = "DecompressedBridge.bmp";
 
-            var resourceCount = 7;
-            var outputFileSize = 1048576;
-
-            var inputArgsCompressPropertiesMock = new Mock<IInputArgsCompress>();
-            var inputArgsDecompressPropertiesMock = new Mock<IInputArgs>();
-            var resourceCalculationMock = new Mock<IResourceCalculation>();
+            var compressInputArgsMock = new Mock<IInputArgs>();
+            var decompressInputArgsMock = new Mock<IInputArgs>();
 
             try
             {
-                CreateSourceFile(toCompressFile);
+                CreateSourceFile(compressInputFile);
 
-                inputArgsCompressPropertiesMock.SetupGet(z => z.OutputFileSize).Returns(outputFileSize);
-                inputArgsCompressPropertiesMock.SetupGet(z => z.InputFileName).Returns(toCompressFile);
-                inputArgsCompressPropertiesMock.SetupGet(z => z.OutputFileName).Returns(toCompressFile);
+                compressInputArgsMock.Setup(z => z.InputFileName).Returns(compressInputFile);
+                compressInputArgsMock.Setup(z => z.OutputFileName).Returns(compressOutputFile);
 
-                inputArgsDecompressPropertiesMock.SetupGet(z => z.InputFileName).Returns(toCompressFile);
-                inputArgsDecompressPropertiesMock.SetupGet(z => z.OutputFileName).Returns(toDecompressFile);
+                var compressEngine = new CompressEngine(compressInputArgsMock.Object);
 
-                resourceCalculationMock.Setup(z => z.GetCount()).Returns(resourceCount);
-
-                var compressEngine = new CompressEngine(inputArgsCompressPropertiesMock.Object);
-
-                var threadManager = new ThreadManager(
-                    compressEngine,
-                    resourceCalculationMock.Object
-                    );
-
+                var threadManager = new ThreadManager(compressEngine);
                 threadManager.Start();
 
-                var decompressEngine = new DecompressEngine(inputArgsDecompressPropertiesMock.Object);
+                /*************************************************************************************/
 
-                threadManager = new ThreadManager(
-                    decompressEngine,
-                    resourceCalculationMock.Object
+                decompressInputArgsMock.Setup(z => z.InputFileName).Returns(compressOutputFile);
+                decompressInputArgsMock.Setup(z => z.OutputFileName).Returns(decompressFile);
+
+                var blockInfoCalculation = new BlockInfoCalculation();
+                var decompressEngine = new DecompressEngine(
+                    decompressInputArgsMock.Object,
+                    blockInfoCalculation
                     );
 
+                threadManager = new ThreadManager(decompressEngine);
                 threadManager.Start();
 
-                var toCompressFileHash = GetHash(toCompressFile);
-                var toDecompressFileHash = GetHash(toDecompressFile);
+                var toCompressFileHash = GetHash(compressInputFile);
+                var toDecompressFileHash = GetHash(decompressFile);
 
                 Assert.AreEqual(
                     toCompressFileHash.SequenceEqual(toDecompressFileHash),
@@ -77,7 +69,7 @@ namespace GzipTest.Tests
                 {
                     foreach (var file in Directory.GetFiles(Directory.GetCurrentDirectory()))
                     {
-                        if (file.Contains(toCompressFile, StringComparison.OrdinalIgnoreCase))
+                        if (file.Contains(compressInputFile, StringComparison.OrdinalIgnoreCase))
                         {
                             File.Delete(file);
                         }

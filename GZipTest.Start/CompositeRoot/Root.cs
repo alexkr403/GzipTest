@@ -13,12 +13,10 @@ namespace GZipTest.Start.CompositeRoot
         {
             Bind<IThreadManager>()
                 .To<ThreadManager>()
-                //Not Singleton
                 ;
 
-            Bind<InputArgs>()
-                .ToSelf()
-                .InSingletonScope()
+            Bind<IInputArgs>()
+                .To<InputArgs>()
                 .WithConstructorArgument("inputFileName", inputFileName)
                 .WithConstructorArgument("outputFileName", outputFileName)
                 ;

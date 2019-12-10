@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
@@ -7,36 +8,45 @@ using GZipTest.Core.ResourceCalculation;
 
 namespace GZipTest.Core.GZipEngine
 {
+    /// <summary>
+    /// Для организации распаковки файла
+    /// </summary>
     public class DecompressEngine : IGzipEngine
     {
-        private readonly InputArgs _inputArgs;
+        private readonly IInputArgs _inputArgs;
+
         private readonly IBlockInfoCalculation _blockInfoCalculation;
 
         /// <summary>
-        /// Для организации последовательной (корректной) записи массива байт каждого из сжатых блоков в распакованный файл,
-        /// с помощью stream.CopyTo()
+        /// Для организации последовательной (корректной) записи массива байт каждого из блоков в результирующий файл
         /// </summary>
         private int _indexSync = 1;
 
         /// <summary>
-        /// Количество итерраций чтения блоков в сжимаемом файле
+        /// Количество итерраций чтения блоков gzip-файла
         /// </summary>
         private int _index;
 
         /// <summary>
-        /// Для синхронизации чтения сжатых файлов и синхронизации послед. записи массива байт в выходной массив
+        /// Для синхронизации чтения qzip-файла среди множества потоков
         /// </summary>
         private object _obj = new object();
 
         /// <summary>
-        /// Уже считано байт для распаковки
+        /// Длина прочитанных байт gzip-файла
         /// </summary>
         private long _totalLenght;
 
+        /// <summary>
+        /// Длина последнего прочитанного на данный момент блока из gzip-файла
+        /// </summary>
         int _blockLenght;
 
+        Queue<Tuple<int, long>> _queue = new Queue<Tuple<int, long>>();
+
+
         public DecompressEngine(
-            InputArgs inputArgs,
+            IInputArgs inputArgs,
             IBlockInfoCalculation blockInfoCalculation
             )
         {
@@ -117,7 +127,7 @@ namespace GZipTest.Core.GZipEngine
             }
         }
 
-        public long GetResourceCount()
+        public int GetResourceCount()
         {
             long totalLenght = 0;
             var blockLenght = 0;

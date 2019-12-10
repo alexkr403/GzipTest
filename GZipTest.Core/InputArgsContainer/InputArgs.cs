@@ -3,9 +3,9 @@
 namespace GZipTest.Core.InputArgsContainer
 {
     /// <summary>
-    /// Аогументы, которые относятся к процедуре по распаковке файла
+    /// Пользовательские параметры из консоли
     /// </summary>
-    public class InputArgs
+    public class InputArgs : IInputArgs
     {
         public InputArgs(
             string inputFileName,
