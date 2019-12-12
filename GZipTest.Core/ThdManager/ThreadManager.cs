@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using GZipTest.Core.GZipEngine;
 
@@ -24,7 +25,7 @@ namespace GZipTest.Core.ThdManager
         private double _stake;
 
         /// <summary>
-        /// Количество сжатых файлов (завершенных потоков)
+        /// Количество сжатых блоков (завершенных потоков)
         /// </summary>
         private int _counterCompletedThreads;
 
@@ -36,19 +37,15 @@ namespace GZipTest.Core.ThdManager
         public ThreadManager(IGzipEngine gzipEngine)
         {
             _gzipEngine = gzipEngine ?? throw new ArgumentNullException(nameof(gzipEngine));
-           
-            _semaphoreCount = Environment.ProcessorCount; //при необходимости можно дать возможность через конструктор передавать
+
+            _semaphoreCount = Environment.ProcessorCount*16; //при необходимости можно дать возможность через конструктор передавать
         }
 
         public void Start()
         {
-            Console.Write("Подготовка к обработке файла");
+            var stopWatch = Stopwatch.StartNew();
 
-            _resourceCount = _gzipEngine.GetResourceCount();
-
-            Console.Write("\rПодготовка к обработке файла завершена");
-            Console.WriteLine();
-
+            _resourceCount = _gzipEngine.GetBlockCount();
             _stake = 100d / _resourceCount;
 
             var semaphore = new SemaphoreSlim(_semaphoreCount);
@@ -65,7 +62,7 @@ namespace GZipTest.Core.ThdManager
                 threads[i].Join();
             }
 
-            Console.Write("\rЗадача успешно завершена. 100%");
+            Console.Write($"\r100%. Задача успешно завершена. Время выполнения: {stopWatch.Elapsed}");
         }
 
         private void StartThread(object o)
@@ -82,7 +79,7 @@ namespace GZipTest.Core.ThdManager
 
                 while (!isCompleted)
                 {
-                    if (semaphore.Wait(1))
+                    if (semaphore.Wait(10))
                     {
                         try
                         {
@@ -106,7 +103,7 @@ namespace GZipTest.Core.ThdManager
 
                     if (_resourceCount > _counterCompletedThreads)
                     {
-                        var percent = (_stake * (_counterCompletedThreads)).ToString("#.##");
+                        var percent = (_stake * _counterCompletedThreads).ToString("#.##");
 
                         Console.Write($"\r{percent}% ");
                     }
@@ -115,6 +112,7 @@ namespace GZipTest.Core.ThdManager
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
+                Console.ReadLine();
 
                 Environment.Exit(1);
             }

@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "GZipTest.Start": {
-      "commandName": "Project",
-      "commandLineArgs": "compress [2000.mkv] [2000.mkv.zip]"
-    }
-  }
-}

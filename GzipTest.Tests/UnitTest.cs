@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using GZipTest.Core.GZipEngine;
 using GZipTest.Core.InputArgsContainer;
-using GZipTest.Core.ResourceCalculation;
+using GZipTest.Core.SettingsContainer;
 using GZipTest.Core.ThdManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -24,6 +24,7 @@ namespace GzipTest.Tests
 
             var compressInputArgsMock = new Mock<IInputArgs>();
             var decompressInputArgsMock = new Mock<IInputArgs>();
+            var settings = new Settings();
 
             try
             {
@@ -32,7 +33,10 @@ namespace GzipTest.Tests
                 compressInputArgsMock.Setup(z => z.InputFileName).Returns(compressInputFile);
                 compressInputArgsMock.Setup(z => z.OutputFileName).Returns(compressOutputFile);
 
-                var compressEngine = new CompressEngine(compressInputArgsMock.Object);
+                var compressEngine = new CompressEngine(
+                    compressInputArgsMock.Object,
+                    settings
+                    );
 
                 var threadManager = new ThreadManager(compressEngine);
                 threadManager.Start();
@@ -42,10 +46,9 @@ namespace GzipTest.Tests
                 decompressInputArgsMock.Setup(z => z.InputFileName).Returns(compressOutputFile);
                 decompressInputArgsMock.Setup(z => z.OutputFileName).Returns(decompressFile);
 
-                var blockInfoCalculation = new BlockInfo();
                 var decompressEngine = new DecompressEngine(
                     decompressInputArgsMock.Object,
-                    blockInfoCalculation
+                    settings
                     );
 
                 threadManager = new ThreadManager(decompressEngine);

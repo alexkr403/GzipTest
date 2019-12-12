@@ -2,9 +2,6 @@
 
 namespace GZipTest.Core.InputArgsContainer
 {
-    /// <summary>
-    /// Пользовательские параметры из консоли
-    /// </summary>
     public class InputArgs : IInputArgs
     {
         public InputArgs(

@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Threading;
 using GZipTest.Core.InputArgsContainer;
+using GZipTest.Core.SettingsContainer;
 
 namespace GZipTest.Core.GZipEngine
 {
@@ -11,12 +12,9 @@ namespace GZipTest.Core.GZipEngine
     /// </summary>
     public class CompressEngine : IGzipEngine
     {
-        /// <summary>
-        /// блок 1 мб.
-        /// </summary>
-        private const int BlockSize = 1048576;
-
         private readonly IInputArgs _inputArgs;
+
+        private readonly Settings _settings;
 
         /// <summary>
         /// Для организации последовательной (корректной) записи массива байт каждого из блоков в gzip файл
@@ -26,7 +24,7 @@ namespace GZipTest.Core.GZipEngine
         /// <summary>
         /// Количество итерраций чтения исходного (сжимаемого) файла
         /// </summary>
-        private int _index;
+        private long _index;
 
         /// <summary>
         /// Длина прочитанных байт исходного (сжимаемого) файла
@@ -38,9 +36,13 @@ namespace GZipTest.Core.GZipEngine
         /// </summary>
         private object _obj = new object();
 
-        public CompressEngine(IInputArgs inputArgs)
+        public CompressEngine(
+            IInputArgs inputArgs,
+            Settings settings
+            )
         {
             _inputArgs = inputArgs ?? throw new ArgumentNullException(nameof(inputArgs));
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
 
         private OutputBlock GetOutputBlock()
@@ -53,7 +55,7 @@ namespace GZipTest.Core.GZipEngine
                     FileAccess.Read
                     ))
                 {
-                    _totalLenght = BlockSize * (long)_index;
+                    _totalLenght = _settings.BlockSize * _index;
 
                     inputFileStream.Seek(
                         _totalLenght,
@@ -62,8 +64,8 @@ namespace GZipTest.Core.GZipEngine
 
                     var countBytesToRead = inputFileStream.Length - _totalLenght;
 
-                    var outputBlockSize = countBytesToRead > BlockSize
-                        ? BlockSize
+                    var outputBlockSize = countBytesToRead > _settings.BlockSize
+                        ? _settings.BlockSize
                         : (int)countBytesToRead;
 
                     var outputBlockBytes = new byte[outputBlockSize];
@@ -108,7 +110,7 @@ namespace GZipTest.Core.GZipEngine
                     while (_indexSync != outputBlock.Index)
                     {
                         //организуем корректную дозапись сжатых частей в выходной файл
-                        Thread.Sleep(1);
+                        Thread.Sleep(10);
                     }
 
                     using (var outputFileStream = File.Open(
@@ -118,10 +120,18 @@ namespace GZipTest.Core.GZipEngine
                         FileShare.Read
                         ))
                     {
-                        outputBlockMemoryStream.Seek(0, SeekOrigin.Begin);
+                        outputBlockMemoryStream.Seek(
+                            0, 
+                            SeekOrigin.Begin
+                            );
 
-                        var linkedListBytes = BitConverter.GetBytes(outputBlockMemoryStream.Length);
-                        outputFileStream.Write(linkedListBytes, 0, linkedListBytes.Length);
+                        var blockBytes = BitConverter.GetBytes(outputBlockMemoryStream.Length);
+
+                        outputFileStream.Write(
+                            blockBytes, 
+                            0, 
+                            blockBytes.Length
+                            );
 
                         outputBlockMemoryStream.CopyTo(outputFileStream);
                     }
@@ -135,24 +145,46 @@ namespace GZipTest.Core.GZipEngine
             }
         }
 
-        public int GetResourceCount()
+        public int GetBlockCount()
         {
             var fileLength = new FileInfo(_inputArgs.InputFileName).Length;
 
-            var resourceCount = fileLength / BlockSize;
-            resourceCount +=
-                BlockSize == fileLength
+            var blockCount = fileLength / _settings.BlockSize;
+            blockCount +=
+                _settings.BlockSize == fileLength
                     ? 0
                     : 1;
 
+            var blockCountToInt = (int)blockCount;
+
+            CreateOutputFile(blockCountToInt);
+
             return
-                (int)resourceCount;
+                blockCountToInt;
+        }
+
+        private void CreateOutputFile(int blockCount)
+        {
+            using (var outputFileStream = File.Open(
+                _inputArgs.OutputFileName,
+                FileMode.Append,
+                FileAccess.Write,
+                FileShare.Read
+                ))
+            {
+                var bytes = BitConverter.GetBytes(blockCount);
+                outputFileStream.Write(
+                    bytes, 
+                    0, 
+                    bytes.Length
+                    );
+            }
         }
 
         private class OutputBlock
         {
             public OutputBlock(
-                int index, 
+                long index, 
                 byte[] data
                 )
             {
@@ -160,7 +192,7 @@ namespace GZipTest.Core.GZipEngine
                 Index = index;
             }
 
-            public int Index { get; }
+            public long Index { get; }
 
             public byte[] Data { get; }
         }

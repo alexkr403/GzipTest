@@ -1,5 +1,5 @@
 ﻿using GZipTest.Core.GZipEngine;
-using GZipTest.Core.ResourceCalculation;
+using GZipTest.Core.SettingsContainer;
 using GZipTest.Start.Common;
 using Ninject.Modules;
 
@@ -29,8 +29,8 @@ namespace GZipTest.Start.CompositeRoot.Modules
                     ;
             }
 
-            Bind<IBlockInfo>()
-                .To<BlockInfo>()
+            Bind<Settings>()
+                .ToSelf()
                 .InSingletonScope()
                 ;
         }

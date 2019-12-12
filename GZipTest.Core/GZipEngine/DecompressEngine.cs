@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Threading;
 using GZipTest.Core.InputArgsContainer;
-using GZipTest.Core.ResourceCalculation;
+using GZipTest.Core.SettingsContainer;
 
 namespace GZipTest.Core.GZipEngine
 {
@@ -15,12 +13,7 @@ namespace GZipTest.Core.GZipEngine
     {
         private readonly IInputArgs _inputArgs;
 
-        private readonly IBlockInfo _blockInfo;
-
-        /// <summary>
-        /// Для организации последовательной (корректной) записи массива байт каждого из блоков в результирующий файл
-        /// </summary>
-        private int _indexSync = 1;
+        private readonly Settings _settings;
 
         /// <summary>
         /// Для синхронизации чтения qzip-файла среди множества потоков
@@ -28,54 +21,72 @@ namespace GZipTest.Core.GZipEngine
         private object _obj = new object();
 
         /// <summary>
+        /// Для синхронизации записи данных в распакованный файл
+        /// </summary>
+        private object _obj2 = new object();
+
+        /// <summary>
         /// Длина прочитанных байт gzip-файла
         /// </summary>
         private long _totalLenght;
 
         /// <summary>
-        /// Информация по блокам, разбитым при создании gzip-файла
+        /// Длина последнего прочитанного на данный момент блока из gzip-файла
         /// </summary>
-        private Queue<Block> _blockQueue;
+        int _blockLenght;
+
+        /// <summary>
+        /// Количество итерраций чтения блоков gzip-файла
+        /// </summary>
+        private int _index;
 
         public DecompressEngine(
             IInputArgs inputArgs,
-            IBlockInfo blockInfoCalculation
+            Settings settings
             )
         {
             _inputArgs = inputArgs ?? throw new ArgumentNullException(nameof(inputArgs));
-            _blockInfo = blockInfoCalculation ?? throw new ArgumentNullException(nameof(blockInfoCalculation));
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+
+            _totalLenght = _settings.ConutBlockLenght;
         }
 
         private InputFile GetInputFile(FileStream inputFileStream)
         {
             lock (_obj)
             {
-                if (_blockQueue == null)
-                {
-                    throw new ArgumentNullException(nameof(_blockQueue));
-                }
+                var blockInfoBytes = new byte[_settings.BlockInfoLenght];
 
-                var block = _blockQueue.Dequeue();
+                _totalLenght += _blockLenght;
 
                 inputFileStream.Seek(
-                    _totalLenght + _blockInfo.Lenght * (long)block.Number,
+                    _totalLenght + _settings.BlockInfoLenght * _index,
                     SeekOrigin.Begin
                     );
 
-                _totalLenght += block.Size;
+                inputFileStream.Read(
+                    blockInfoBytes, 
+                    0,
+                    _settings.BlockInfoLenght
+                    );
 
-                var blockBytes = new byte[block.Size];
+                _blockLenght = BitConverter.ToInt32(
+                    blockInfoBytes,
+                    0
+                    );
+
+                var blockBytes = new byte[_blockLenght];
 
                 inputFileStream.Read(
-                    blockBytes,
-                    0,
-                    block.Size
+                    blockBytes, 
+                    0, 
+                    _blockLenght
                     );
 
                 return
                     new InputFile(
                         blockBytes,
-                        block.Number
+                        _index++
                         );
             }
         }
@@ -95,30 +106,31 @@ namespace GZipTest.Core.GZipEngine
                     inputFile = GetInputFile(inputFileStream);
                 }
 
-                using (var memoryStream = new MemoryStream(inputFile.Data))
+                using (var outputBlockMemoryStream = new MemoryStream(inputFile.Data))
                 {
                     using (var decompressionStream = new GZipStream(
-                        memoryStream,
-                        CompressionMode.Decompress
+                        outputBlockMemoryStream,
+                        CompressionMode.Decompress,
+                        true
                         ))
                     {
-                        while (_indexSync != inputFile.Index)
+                        lock (_obj2)
                         {
-                            //организуем корректную дозапись рапакованных частей файла в выходной файл
-                            Thread.Sleep(1);
-                        }
+                            using (var outputFileStream = File.Open(
+                                _inputArgs.OutputFileName,
+                                FileMode.OpenOrCreate,
+                                FileAccess.Write,
+                                FileShare.Read
+                                ))
+                            {
+                                outputFileStream.Seek(
+                                    inputFile.Index * _settings.BlockSize,
+                                    SeekOrigin.Begin
+                                    );
 
-                        using (var outputFileStream = File.Open(
-                            _inputArgs.OutputFileName,
-                            FileMode.Append,
-                            FileAccess.Write,
-                            FileShare.Read
-                            ))
-                        {
-                            decompressionStream.CopyTo(outputFileStream);
+                                decompressionStream.CopyTo(outputFileStream);
+                            }
                         }
-
-                        _indexSync++;
                     }
                 }
             }
@@ -128,19 +140,42 @@ namespace GZipTest.Core.GZipEngine
             }
         }
 
-        public int GetResourceCount()
+        public int GetBlockCount()
         {
-            _blockQueue = _blockInfo.GetBlockQueue();
+            using (var inputFileStream = new FileStream(
+                _inputArgs.InputFileName,
+                FileMode.Open,
+                FileAccess.Read
+                ))
+            {
+                inputFileStream.Seek(
+                    0,
+                    SeekOrigin.Begin
+                    );
 
-            return
-                _blockQueue.Count;
+                var conutBlockLenghtBytes = new byte[_settings.ConutBlockLenght];
+
+                inputFileStream.Read(
+                    conutBlockLenghtBytes,
+                    0,
+                    conutBlockLenghtBytes.Length
+                    );
+
+                var blockCountToInt = BitConverter.ToInt32(
+                    conutBlockLenghtBytes,
+                    0
+                    );
+
+                return
+                    blockCountToInt;
+            }
         }
 
         private class InputFile
         {
             public InputFile(
                 byte[] data,
-                int index
+                long index
                 )
             {
                 Data = data ?? throw new ArgumentNullException(nameof(data));
@@ -149,7 +184,7 @@ namespace GZipTest.Core.GZipEngine
 
             public byte[] Data { get; }
 
-            public int Index { get; }
+            public long Index { get; }
         }
     }
 }

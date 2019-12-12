@@ -7,8 +7,8 @@ using Ninject;
 
 namespace GZipTest.Start
 {
-    //compress [bridge.bmp] [bridge.bmp.zip]
-    //decompress [bridge.bmp.zip] [bridgeDecompressed.bmp]
+    //compress [bridge.bmp] [bridge.bmp.gzip]
+    //decompress [bridge.bmp.gzip] [bridgeDecompressed.bmp]
 
     class Program
     {
@@ -26,6 +26,9 @@ namespace GZipTest.Start
                         "compress/decompress [имя исходного файла] [имя результирующего файла]"
                         );
 
+                    Console.ReadLine();
+                    Environment.Exit(1);
+
                     return;
                 }
 
@@ -37,11 +40,17 @@ namespace GZipTest.Start
 
                 if (gzipEngineType == GzipEngineEnum.NotDefined)
                 {
+                    Console.ReadLine();
+                    Environment.Exit(1);
+
                     return;
                 }
 
                 if (!ValidationInputArgsHelper.ValidateFiles(inputFileName, outputFileName))
                 {
+                    Console.ReadLine();
+                    Environment.Exit(1);
+
                     return;
                 }
 
@@ -60,12 +69,14 @@ namespace GZipTest.Start
                     engine.Start();
                 }
 
+                Console.ReadLine();
                 Environment.Exit(0);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка при обработке файла. {ex.Message}");
 
+                Console.ReadLine();
                 Environment.Exit(1);
             }
         }
